@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="highlight.css">
+    <style>
+      body {
+        background: #111;
+        color: #0ff;
+        font-family: monospace;
+        padding: 10px;
+      }
+      #search {
+        width: 95%;
+        padding: 5px;
+        font-size: 12px;
+        margin-bottom: 10px;
+        background: black;
+        color: #0ff;
+        border: 1px solid magenta;
+        border-radius: 4px;
+      }
+      #list {
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+      }
+      .testid-item {
+        cursor: pointer;
+        border-bottom: 1px dashed #444;
+        padding: 6px 4px;
+        color: #fff;
+        word-break: break-all;
+        transition: background 0.2s ease;
+      }
+      .testid-item:hover {
+        background: rgba(255, 0, 255, 0.2);
+      }
+      .testid-item-highlighted {
+        background: rgba(0, 255, 255, 0.5) !important;
+        outline: 2px solid #00ffff !important;
+        outline-offset: 2px;
+        box-shadow: 0 0 8px rgba(0, 255, 255, 0.6) !important;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>TestID Viewer</h2>
+    <input id="search" placeholder="Search…">
+    <div id="list"></div>
+
+    <script src="sidebar.js"></script>
+  </body>
+</html>

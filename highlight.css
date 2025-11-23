@@ -1,0 +1,146 @@
+/* Highlight only when .show-testids is on the <html> element */
+.show-testids [data-testid] {
+  outline: 1px dashed magenta !important;
+}
+
+/* Floating draggable panel */
+#testid-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: rgba(15, 15, 15, 0.95);
+  color: #0ff;
+  font: 12px monospace;
+  padding: 0;
+  border: 2px solid magenta;
+  border-radius: 8px;
+  z-index: 2147483647;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.8), 0 0 10px rgba(255,0,255,0.3);
+  resize: both;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#testid-overlay > div:first-child {
+  flex-shrink: 0;
+}
+
+#testid-overlay > #testid-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+#testid-overlay h3 {
+  margin: 0;
+  font-size: 13px;
+  color: #f0f;
+  text-align: center;
+}
+
+#testid-overlay #testid-search {
+  margin: 8px;
+  width: calc(100% - 16px);
+}
+
+.testid-item {
+  cursor: pointer;
+  border-bottom: 1px dashed #444;
+  padding: 3px 2px;
+  color: #fff;
+  word-break: break-all;
+}
+
+.testid-item:hover {
+  background: rgba(255,0,255,0.2);
+}
+
+/* Toggle button */
+#testid-toggle {
+  position: fixed;
+  top: 10px;
+  right: 330px;
+  background: magenta;
+  color: black;
+  font-weight: bold;
+  font-family: monospace;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  z-index: 2147483647;
+}
+
+/* Blink animation for hovered element */
+@keyframes claroty-blink {
+  0%, 100% { outline-color: magenta; }
+  50% { outline-color: transparent; }
+}
+
+.claroty-highlight-blink {
+  animation: claroty-blink 0.8s ease-in-out 2;
+}
+
+/* Persistent highlight for clicked element — brighter, pulsing glow */
+.claroty-active-highlight {
+  position: relative !important;
+  outline: 3px solid #00ffff !important;
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 3px rgba(0, 255, 255, 0.4),
+    0 0 12px 4px rgba(0, 255, 255, 0.6),
+    0 0 25px 6px rgba(0, 255, 255, 0.8);
+  background-color: rgba(0, 255, 255, 0.05);
+  border-radius: 4px;
+  animation: claroty-pulse 1.5s ease-in-out infinite alternate;
+  transition: all 0.2s ease-in-out;
+}
+
+@keyframes claroty-pulse {
+  0% {
+    box-shadow:
+      0 0 0 3px rgba(0, 255, 255, 0.4),
+      0 0 12px 4px rgba(0, 255, 255, 0.6),
+      0 0 25px 6px rgba(0, 255, 255, 0.8);
+    opacity: 1;
+  }
+  100% {
+    box-shadow:
+      0 0 0 4px rgba(0, 255, 255, 0.6),
+      0 0 18px 6px rgba(0, 255, 255, 0.9),
+      0 0 35px 10px rgba(0, 255, 255, 1);
+    opacity: 0.9;
+  }
+}
+
+/* Ensure scroll always works smoothly */
+#testid-overlay {
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+.testid-item.active {
+  background: rgba(0, 255, 255, 0.3);
+  transition: background 0.4s ease;
+}
+
+.testid-item-highlighted {
+  background: rgba(0, 255, 255, 0.4) !important;
+  outline: 2px solid #00ffff !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.6) !important;
+}
+
+/* Hover highlight for UI elements when hovering list items - slower transitions */
+.claroty-hover-highlight {
+  outline: 2px solid #00ffff !important;
+  outline-offset: 2px !important;
+  box-shadow:
+    0 0 0 2px rgba(0, 255, 255, 0.3),
+    0 0 8px 3px rgba(0, 255, 255, 0.5) !important;
+  background-color: rgba(0, 255, 255, 0.1) !important;
+  transition: all 0.5s ease-in-out !important; /* Slower transition */
+}
