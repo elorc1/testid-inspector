@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Claroty TestID Viewer",
+  "name": "TestID Inspector",
   "version": "2.2",
-  "description": "Displays all data-testid attributes with a toolbar toggle and sidebar inspector.",
+  "description": "Developer tool to inspect and highlight data-testid attributes with bidirectional highlighting.",
 
   "action": {
     "default_popup": "popup.html",

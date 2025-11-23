@@ -15,10 +15,10 @@ let shadowHost = null;
 let shadowRoot = null;
 
 function createShadowRoot() {
-  shadowHost = document.getElementById("claroty-testid-host");
+  shadowHost = document.getElementById("testid-inspector-host");
   if (!shadowHost) {
     shadowHost = document.createElement("div");
-    shadowHost.id = "claroty-testid-host";
+    shadowHost.id = "testid-inspector-host";
     shadowHost.style.cssText = `
       position: fixed !important;
       top: 0 !important;
@@ -152,7 +152,7 @@ function destroyUI() {
 
   clearActiveHighlight();
   if (listItemHoveredElement) {
-    listItemHoveredElement.classList.remove("claroty-hover-highlight");
+    listItemHoveredElement.classList.remove("testid-hover-highlight");
     listItemHoveredElement = null;
   }
 
@@ -251,14 +251,14 @@ function collectTestIds() {
 
 function clearActiveHighlight() {
   if (lastHighlighted) {
-    lastHighlighted.classList.remove("claroty-active-highlight");
+    lastHighlighted.classList.remove("testid-active-highlight");
     lastHighlighted = null;
   }
 }
 
 function clearHoverHighlight() {
   if (listItemHoveredElement) {
-    listItemHoveredElement.classList.remove("claroty-hover-highlight");
+    listItemHoveredElement.classList.remove("testid-hover-highlight");
     listItemHoveredElement = null;
   }
 }
@@ -266,7 +266,7 @@ function clearHoverHighlight() {
 function highlightElement(el) {
   if (!el) return;
   clearActiveHighlight();
-  el.classList.add("claroty-active-highlight");
+  el.classList.add("testid-active-highlight");
   lastHighlighted = el;
 }
 
@@ -290,7 +290,7 @@ function attachPageListeners() {
 
 function handleHover(e) {
   // Don't process hover if it's within our shadow DOM
-  if (e.target && e.target.closest && e.target.closest("#claroty-testid-host")) return;
+  if (e.target && e.target.closest && e.target.closest("#testid-inspector-host")) return;
   
   // Find the closest element with data-testid, traversing up the DOM tree
   let target = e.target;
@@ -348,7 +348,7 @@ function handleHover(e) {
 
 function handleClick(e) {
   // Don't process click if it's within our shadow DOM
-  if (e.target.closest("#claroty-testid-host")) return;
+  if (e.target.closest("#testid-inspector-host")) return;
   
   const target = e.target.closest("[data-testid]");
   if (!target || !overlay || !shadowRoot) return;

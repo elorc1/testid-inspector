@@ -1,4 +1,4 @@
-# Claroty TestID Viewer
+# TestID Inspector
 
 A Chrome extension that helps developers inspect and interact with `data-testid` attributes on web pages.
 

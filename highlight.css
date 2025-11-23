@@ -75,13 +75,13 @@
 }
 
 /* Blink animation for hovered element */
-@keyframes claroty-blink {
+@keyframes testid-blink {
   0%, 100% { outline-color: magenta; }
   50% { outline-color: transparent; }
 }
 
-.claroty-highlight-blink {
-  animation: claroty-blink 0.8s ease-in-out 2;
+.testid-highlight-blink {
+  animation: testid-blink 0.8s ease-in-out 2;
 }
 
 /* Persistent highlight for clicked element — brighter, pulsing glow */
@@ -99,7 +99,7 @@
   transition: all 0.2s ease-in-out;
 }
 
-@keyframes claroty-pulse {
+@keyframes testid-pulse {
   0% {
     box-shadow:
       0 0 0 3px rgba(0, 255, 255, 0.4),
@@ -135,7 +135,7 @@
 }
 
 /* Hover highlight for UI elements when hovering list items - slower transitions */
-.claroty-hover-highlight {
+.testid-hover-highlight {
   outline: 2px solid #00ffff !important;
   outline-offset: 2px !important;
   box-shadow:
