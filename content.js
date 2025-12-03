@@ -245,7 +245,11 @@ function collectTestIds() {
   
   return elements.map(el => ({
     id: el.getAttribute("data-testid"),
-    el
+    el,
+    // Collect metadata for PageObject generation
+    tagName: el.tagName.toLowerCase(),
+    type: el.getAttribute("type") || null,
+    role: el.getAttribute("role") || null
   }));
 }
 
@@ -369,8 +373,17 @@ document.addEventListener("mouseleave", () => {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "GET_TESTIDS") {
-    const ids = collectTestIds().map(x => x.id);
-    sendResponse({ testIds: ids });
+    const collected = collectTestIds();
+    // Return both simple IDs array (for backward compatibility) and full metadata
+    sendResponse({ 
+      testIds: collected.map(x => x.id),
+      testIdsWithMeta: collected.map(x => ({
+        id: x.id,
+        tagName: x.tagName,
+        type: x.type,
+        role: x.role
+      }))
+    });
     return true; // Keep channel open for async response
   }
 

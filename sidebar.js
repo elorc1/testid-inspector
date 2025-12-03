@@ -1,6 +1,201 @@
 let refreshInterval = null;
 let currentHoveredId = null;
 let highlightedItem = null;
+let elementMetaMap = new Map(); // Store element metadata for PageObject generation
+let activeContextMenu = null; // Track active context menu
+
+// ==================== PageObject Generation ====================
+
+/**
+ * Convert test-id to snake_case
+ * e.g. "ha-status-icon" -> "ha_status_icon"
+ */
+function toSnakeCase(testId) {
+  return testId.toLowerCase().replace(/-/g, '_');
+}
+
+/**
+ * Detect element type based on safe signals (tagName, type, role)
+ * Returns: 'button' | 'text_input' | 'checkbox' | 'select' | 'generic'
+ */
+function detectElementType(meta) {
+  if (!meta) return 'generic';
+  
+  const { tagName, type, role } = meta;
+  
+  // Button detection
+  if (tagName === 'button' || role === 'button') {
+    return 'button';
+  }
+  
+  // Text input detection
+  if (tagName === 'textarea') {
+    return 'text_input';
+  }
+  if (tagName === 'input') {
+    const textTypes = ['text', 'password', 'email', 'number', 'search', 'tel', 'url'];
+    if (!type || textTypes.includes(type)) {
+      return 'text_input';
+    }
+  }
+  
+  // Checkbox/Toggle detection
+  if (tagName === 'input' && type === 'checkbox') {
+    return 'checkbox';
+  }
+  if (role === 'checkbox' || role === 'switch') {
+    return 'checkbox';
+  }
+  
+  // Select/Dropdown detection
+  if (tagName === 'select' || role === 'combobox' || role === 'listbox') {
+    return 'select';
+  }
+  
+  // Default to generic getter
+  return 'generic';
+}
+
+/**
+ * Generate PageObject method based on element type
+ */
+function generatePageObjectMethod(testId, meta) {
+  const snakeName = toSnakeCase(testId);
+  const xpath = `//*[@data-testid="${testId}"]`;
+  const elementType = detectElementType(meta);
+  
+  switch (elementType) {
+    case 'button':
+      return `def click_${snakeName}(self):
+    """Click the ${snakeName} element."""
+    logger.info("Clicking ${snakeName}")
+    el = self.driver.find_element(By.XPATH, '${xpath}')
+    el.click()`;
+    
+    case 'text_input':
+      return `def set_${snakeName}(self, value):
+    """Set text in the ${snakeName} field."""
+    logger.info(f"Setting ${snakeName} to: {value}")
+    el = self.driver.find_element(By.XPATH, '${xpath}')
+    el.clear()
+    el.send_keys(value)`;
+    
+    case 'checkbox':
+      return `def toggle_${snakeName}(self, state):
+    """Toggle the ${snakeName} checkbox/switch to desired state."""
+    logger.info(f"Toggling ${snakeName} to: {state}")
+    el = self.driver.find_element(By.XPATH, '${xpath}')
+    if el.is_selected() != state:
+        el.click()`;
+    
+    case 'select':
+      return `def select_${snakeName}(self, value):
+    """Select a value in the ${snakeName} dropdown."""
+    logger.info(f"Selecting ${snakeName}: {value}")
+    select = Select(self.driver.find_element(By.XPATH, '${xpath}'))
+    select.select_by_value(value)`;
+    
+    default: // 'generic'
+      return `def get_${snakeName}(self):
+    """Get the ${snakeName} element."""
+    logger.info("Getting ${snakeName}")
+    return self.driver.find_element(By.XPATH, '${xpath}')`;
+  }
+}
+
+// ==================== Context Menu ====================
+
+function createContextMenu() {
+  const menu = document.createElement('div');
+  menu.className = 'testid-context-menu';
+  menu.innerHTML = `
+    <div class="context-menu-item" data-action="copy-testid">
+      <span class="menu-icon">[id]</span> Copy test-id
+    </div>
+    <div class="context-menu-item" data-action="copy-xpath">
+      <span class="menu-icon">//</span> Copy XPath
+    </div>
+    <div class="context-menu-item" data-action="copy-pageobject">
+      <span class="menu-icon">def</span> Copy PageObject method
+    </div>
+  `;
+  return menu;
+}
+
+function showContextMenu(event, testId) {
+  event.preventDefault();
+  hideContextMenu();
+  
+  const menu = createContextMenu();
+  activeContextMenu = menu;
+  
+  // Position the menu
+  menu.style.left = `${event.clientX}px`;
+  menu.style.top = `${event.clientY}px`;
+  
+  // Handle menu item clicks
+  menu.addEventListener('click', (e) => {
+    const item = e.target.closest('.context-menu-item');
+    if (!item) return;
+    
+    const action = item.dataset.action;
+    const meta = elementMetaMap.get(testId);
+    let textToCopy = '';
+    
+    switch (action) {
+      case 'copy-testid':
+        textToCopy = `data-testid="${testId}"`;
+        break;
+      case 'copy-xpath':
+        textToCopy = `//*[@data-testid="${testId}"]`;
+        break;
+      case 'copy-pageobject':
+        textToCopy = generatePageObjectMethod(testId, meta);
+        break;
+    }
+    
+    if (textToCopy) {
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showCopyFeedback(item);
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+      });
+    }
+  });
+  
+  document.body.appendChild(menu);
+  
+  // Adjust position if menu goes off-screen
+  const rect = menu.getBoundingClientRect();
+  if (rect.right > window.innerWidth) {
+    menu.style.left = `${window.innerWidth - rect.width - 10}px`;
+  }
+  if (rect.bottom > window.innerHeight) {
+    menu.style.top = `${window.innerHeight - rect.height - 10}px`;
+  }
+  
+  // Close menu on outside click
+  setTimeout(() => {
+    document.addEventListener('click', hideContextMenu, { once: true });
+  }, 0);
+}
+
+function hideContextMenu() {
+  if (activeContextMenu && activeContextMenu.parentNode) {
+    activeContextMenu.parentNode.removeChild(activeContextMenu);
+    activeContextMenu = null;
+  }
+}
+
+function showCopyFeedback(element) {
+  const originalText = element.innerHTML;
+  element.innerHTML = '<span class="menu-icon">✅</span> Copied!';
+  element.classList.add('copied');
+  
+  setTimeout(() => {
+    hideContextMenu();
+  }, 600);
+}
 
 function highlightItemInList(id) {
   if (!id) {
@@ -135,7 +330,7 @@ function highlightItemInList(id) {
   findAndHighlight();
 }
 
-function updateList(testIds) {
+function updateList(testIds, testIdsWithMeta) {
   const list = document.getElementById("list");
   if (!list) return;
   
@@ -151,10 +346,37 @@ function updateList(testIds) {
     return;
   }
 
+  // Store metadata in map for PageObject generation
+  if (testIdsWithMeta) {
+    testIdsWithMeta.forEach(item => {
+      elementMetaMap.set(item.id, {
+        tagName: item.tagName,
+        type: item.type,
+        role: item.role
+      });
+    });
+  }
+
   testIds.forEach(id => {
     const div = document.createElement("div");
     div.className = "testid-item";
-    div.textContent = `data-testid="${id}"`;
+    
+    // Create text span
+    const textSpan = document.createElement("span");
+    textSpan.className = "testid-text";
+    textSpan.textContent = `data-testid="${id}"`;
+    div.appendChild(textSpan);
+    
+    // Create menu button (small, unobtrusive)
+    const menuBtn = document.createElement("button");
+    menuBtn.className = "testid-menu-btn";
+    menuBtn.textContent = "⋮";
+    menuBtn.title = "Copy options";
+    menuBtn.onclick = (e) => {
+      e.stopPropagation();
+      showContextMenu(e, id);
+    };
+    div.appendChild(menuBtn);
     
     // CRITICAL: Set data attribute for reliable lookup
     div.setAttribute("data-testid", id);
@@ -169,6 +391,11 @@ function updateList(testIds) {
         });
       });
     };
+
+    // Right-click handler for context menu
+    div.addEventListener("contextmenu", (e) => {
+      showContextMenu(e, id);
+    });
 
     // Hover handlers for bidirectional highlighting (disabled - main focus is list highlighting)
     div.addEventListener("mouseenter", () => {
@@ -219,10 +446,10 @@ function sendMessageToTab(message, callback) {
 function refresh() {
   sendMessageToTab({ type: "GET_TESTIDS" }, (response) => {
     if (response && response.testIds) {
-      updateList(response.testIds);
+      updateList(response.testIds, response.testIdsWithMeta);
     } else {
       // If no response, show empty state
-      updateList([]);
+      updateList([], null);
     }
   });
 }
