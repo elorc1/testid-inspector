@@ -66,40 +66,61 @@ function generatePageObjectMethod(testId, meta) {
   
   switch (elementType) {
     case 'button':
-      return `def click_${snakeName}(self):
-    """Click the ${snakeName} element."""
-    logger.info("Clicking ${snakeName}")
-    el = self.driver.find_element(By.XPATH, '${xpath}')
-    el.click()`;
+      return `def click_${snakeName}(self) -> None:
+    """
+    Click '${snakeName}' web element
+    """
+    logger.debug("Click '${snakeName}' web element")
+    element = self._browser.find_element_by_xpath(
+        '${xpath}'
+    )
+    element.click()`;
     
     case 'text_input':
-      return `def set_${snakeName}(self, value):
-    """Set text in the ${snakeName} field."""
-    logger.info(f"Setting ${snakeName} to: {value}")
-    el = self.driver.find_element(By.XPATH, '${xpath}')
-    el.clear()
-    el.send_keys(value)`;
+      return `def set_${snakeName}(self, value: str) -> None:
+    """
+    Set text in '${snakeName}' web element
+    """
+    logger.debug(f"Set '${snakeName}' to: {value}")
+    element = self._browser.find_element_by_xpath(
+        '${xpath}'
+    )
+    element.clear()
+    element.send_keys(value)`;
     
     case 'checkbox':
-      return `def toggle_${snakeName}(self, state):
-    """Toggle the ${snakeName} checkbox/switch to desired state."""
-    logger.info(f"Toggling ${snakeName} to: {state}")
-    el = self.driver.find_element(By.XPATH, '${xpath}')
-    if el.is_selected() != state:
-        el.click()`;
+      return `def toggle_${snakeName}(self, state: bool) -> None:
+    """
+    Toggle '${snakeName}' web element to desired state
+    """
+    logger.debug(f"Toggle '${snakeName}' to: {state}")
+    element = self._browser.find_element_by_xpath(
+        '${xpath}'
+    )
+    if element.is_selected() != state:
+        element.click()`;
     
     case 'select':
-      return `def select_${snakeName}(self, value):
-    """Select a value in the ${snakeName} dropdown."""
-    logger.info(f"Selecting ${snakeName}: {value}")
-    select = Select(self.driver.find_element(By.XPATH, '${xpath}'))
-    select.select_by_value(value)`;
+      return `def select_${snakeName}(self, value: str) -> None:
+    """
+    Select value in '${snakeName}' web element
+    """
+    logger.debug(f"Select '${snakeName}': {value}")
+    element = Select(self._browser.find_element_by_xpath(
+        '${xpath}'
+    ))
+    element.select_by_value(value)`;
     
     default: // 'generic'
-      return `def get_${snakeName}(self):
-    """Get the ${snakeName} element."""
-    logger.info("Getting ${snakeName}")
-    return self.driver.find_element(By.XPATH, '${xpath}')`;
+      return `def get_${snakeName}(self) -> WebElement:
+    """
+    Get '${snakeName}' web element
+    """
+    logger.debug("Get '${snakeName}' web element")
+    element = self._browser.find_element_by_xpath(
+        '${xpath}'
+    )
+    return element`;
   }
 }
 
