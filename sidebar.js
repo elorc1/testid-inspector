@@ -15,104 +15,13 @@ function toSnakeCase(testId) {
 }
 
 /**
- * Detect element type based on safe signals (tagName, type, role)
- * Returns: 'button' | 'text_input' | 'checkbox' | 'select' | 'generic'
+ * Generate PageObject method - always returns WebElement
  */
-function detectElementType(meta) {
-  if (!meta) return 'generic';
-  
-  const { tagName, type, role } = meta;
-  
-  // Button detection
-  if (tagName === 'button' || role === 'button') {
-    return 'button';
-  }
-  
-  // Text input detection
-  if (tagName === 'textarea') {
-    return 'text_input';
-  }
-  if (tagName === 'input') {
-    const textTypes = ['text', 'password', 'email', 'number', 'search', 'tel', 'url'];
-    if (!type || textTypes.includes(type)) {
-      return 'text_input';
-    }
-  }
-  
-  // Checkbox/Toggle detection
-  if (tagName === 'input' && type === 'checkbox') {
-    return 'checkbox';
-  }
-  if (role === 'checkbox' || role === 'switch') {
-    return 'checkbox';
-  }
-  
-  // Select/Dropdown detection
-  if (tagName === 'select' || role === 'combobox' || role === 'listbox') {
-    return 'select';
-  }
-  
-  // Default to generic getter
-  return 'generic';
-}
-
-/**
- * Generate PageObject method based on element type
- */
-function generatePageObjectMethod(testId, meta) {
+function generatePageObjectMethod(testId) {
   const snakeName = toSnakeCase(testId);
   const xpath = `//*[@data-testid="${testId}"]`;
-  const elementType = detectElementType(meta);
   
-  switch (elementType) {
-    case 'button':
-      return `def click_${snakeName}(self) -> None:
-    """
-    Click '${snakeName}' web element
-    """
-    logger.debug("Click '${snakeName}' web element")
-    element = self._browser.find_element_by_xpath(
-        '${xpath}'
-    )
-    element.click()`;
-    
-    case 'text_input':
-      return `def set_${snakeName}(self, value: str) -> None:
-    """
-    Set text in '${snakeName}' web element
-    """
-    logger.debug(f"Set '${snakeName}' to: {value}")
-    element = self._browser.find_element_by_xpath(
-        '${xpath}'
-    )
-    element.clear()
-    element.send_keys(value)`;
-    
-    case 'checkbox':
-      return `def toggle_${snakeName}(self, state: bool) -> None:
-    """
-    Toggle '${snakeName}' web element to desired state
-    """
-    logger.debug(f"Toggle '${snakeName}' to: {state}")
-    element = self._browser.find_element_by_xpath(
-        '${xpath}'
-    )
-    if element.is_selected() != state:
-        element.click()`;
-    
-    case 'select':
-      return `def select_${snakeName}(self, value: str) -> None:
-    """
-    Select value in '${snakeName}' web element
-    """
-    logger.debug(f"Select '${snakeName}': {value}")
-    element = Select(self._browser.find_element_by_xpath(
-        '${xpath}'
-    ))
-    element.select_by_value(value)`;
-    
-    default: // 'generic'
-      return `def get_${snakeName}(self) -> WebElement:
+  return `def get_${snakeName}(self) -> WebElement:
     """
     Get '${snakeName}' web element
     """
@@ -121,7 +30,6 @@ function generatePageObjectMethod(testId, meta) {
         '${xpath}'
     )
     return element`;
-  }
 }
 
 // ==================== Context Menu ====================
@@ -160,7 +68,6 @@ function showContextMenu(event, testId) {
     if (!item) return;
     
     const action = item.dataset.action;
-    const meta = elementMetaMap.get(testId);
     let textToCopy = '';
     
     switch (action) {
@@ -171,7 +78,7 @@ function showContextMenu(event, testId) {
         textToCopy = `//*[@data-testid="${testId}"]`;
         break;
       case 'copy-pageobject':
-        textToCopy = generatePageObjectMethod(testId, meta);
+        textToCopy = generatePageObjectMethod(testId);
         break;
     }
     
