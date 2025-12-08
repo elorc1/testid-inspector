@@ -34,10 +34,12 @@ function generatePageObjectMethod(testId) {
 
 // ==================== Context Menu ====================
 
-function createContextMenu() {
+function createContextMenu(meta) {
   const menu = document.createElement('div');
   menu.className = 'testid-context-menu';
-  menu.innerHTML = `
+  
+  // Base options (always shown)
+  let menuHTML = `
     <div class="context-menu-item" data-action="copy-testid">
       <span class="menu-icon">[id]</span> Copy test-id
     </div>
@@ -46,8 +48,28 @@ function createContextMenu() {
     </div>
     <div class="context-menu-item" data-action="copy-pageobject">
       <span class="menu-icon">def</span> Copy PageObject method
-    </div>
-  `;
+    </div>`;
+  
+  // Conditional options based on element attributes
+  if (meta && meta.role) {
+    menuHTML += `
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" data-action="copy-role-xpath">
+      <span class="menu-icon">role</span> Copy role XPath
+    </div>`;
+  }
+  
+  if (meta && meta.ariaLabel) {
+    if (!meta.role) {
+      menuHTML += `<div class="context-menu-divider"></div>`;
+    }
+    menuHTML += `
+    <div class="context-menu-item" data-action="copy-aria-xpath">
+      <span class="menu-icon">aria</span> Copy aria-label XPath
+    </div>`;
+  }
+  
+  menu.innerHTML = menuHTML;
   return menu;
 }
 
@@ -55,7 +77,8 @@ function showContextMenu(event, testId) {
   event.preventDefault();
   hideContextMenu();
   
-  const menu = createContextMenu();
+  const meta = elementMetaMap.get(testId);
+  const menu = createContextMenu(meta);
   activeContextMenu = menu;
   
   // Position the menu
@@ -79,6 +102,16 @@ function showContextMenu(event, testId) {
         break;
       case 'copy-pageobject':
         textToCopy = generatePageObjectMethod(testId);
+        break;
+      case 'copy-role-xpath':
+        if (meta && meta.role) {
+          textToCopy = `//${meta.tagName}[@role="${meta.role}"]`;
+        }
+        break;
+      case 'copy-aria-xpath':
+        if (meta && meta.ariaLabel) {
+          textToCopy = `//${meta.tagName}[@aria-label="${meta.ariaLabel}"]`;
+        }
         break;
     }
     
@@ -280,7 +313,8 @@ function updateList(testIds, testIdsWithMeta) {
       elementMetaMap.set(item.id, {
         tagName: item.tagName,
         type: item.type,
-        role: item.role
+        role: item.role,
+        ariaLabel: item.ariaLabel
       });
     });
   }

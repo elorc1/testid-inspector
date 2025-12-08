@@ -249,7 +249,8 @@ function collectTestIds() {
     // Collect metadata for PageObject generation
     tagName: el.tagName.toLowerCase(),
     type: el.getAttribute("type") || null,
-    role: el.getAttribute("role") || null
+    role: el.getAttribute("role") || null,
+    ariaLabel: el.getAttribute("aria-label") || null
   }));
 }
 
@@ -381,7 +382,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         id: x.id,
         tagName: x.tagName,
         type: x.type,
-        role: x.role
+        role: x.role,
+        ariaLabel: x.ariaLabel
       }))
     });
     return true; // Keep channel open for async response
