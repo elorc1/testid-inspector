@@ -7,11 +7,16 @@ let activeContextMenu = null; // Track active context menu
 // ==================== PageObject Generation ====================
 
 /**
- * Convert test-id to snake_case
- * e.g. "ha-status-icon" -> "ha_status_icon"
+ * Convert test-id to a valid snake_case Python identifier
+ * e.g. "ha-status-icon"                    -> "ha_status_icon"
+ *      "settings-content-/settings/deploy" -> "settings_content_settings_deploy"
+ *      "column-state.version"              -> "column_state_version"
  */
 function toSnakeCase(testId) {
-  return testId.toLowerCase().replace(/-/g, '_');
+  return testId
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')  // replace any non-alphanumeric run with _
+    .replace(/^_+|_+$/g, '');     // strip leading/trailing underscores
 }
 
 /**
@@ -436,10 +441,15 @@ function initSearch() {
 }
 
 function getVisibleIds() {
+  const seen = new Set();
   return [...document.querySelectorAll(".testid-item")]
     .filter(item => item.style.display !== "none")
     .map(item => item.getAttribute("data-testid"))
-    .filter(Boolean);
+    .filter(id => {
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
 }
 
 function flashBtn(btn, label) {
