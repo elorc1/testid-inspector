@@ -89,6 +89,9 @@ if (toggleBtn) {
   console.error("Toggle button not found");
 }
 
+// Refresh UI on focus - sidebar may have changed state
+window.addEventListener("focus", init);
+
 // Initialize when DOM is ready
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);

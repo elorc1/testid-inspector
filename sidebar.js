@@ -50,12 +50,12 @@ function createContextMenu(meta) {
       <span class="menu-icon">def</span> Copy PageObject method
     </div>`;
   
-  // Conditional options based on element attributes
+  // Conditional options based on element attributes — show actual values in label
   if (meta && meta.role) {
     menuHTML += `
     <div class="context-menu-divider"></div>
     <div class="context-menu-item" data-action="copy-role-xpath">
-      <span class="menu-icon">role</span> Copy role XPath
+      <span class="menu-icon">role</span> Copy XPath [@role="${meta.role}"]
     </div>`;
   }
   
@@ -65,7 +65,7 @@ function createContextMenu(meta) {
     }
     menuHTML += `
     <div class="context-menu-item" data-action="copy-aria-xpath">
-      <span class="menu-icon">aria</span> Copy aria-label XPath
+      <span class="menu-icon">aria</span> Copy XPath [@aria-label="${meta.ariaLabel}"]
     </div>`;
   }
   
@@ -429,8 +429,39 @@ function initSearch() {
     const term = e.target.value.toLowerCase();
     [...document.querySelectorAll(".testid-item")].forEach(item => {
       item.style.display = item.textContent.toLowerCase().includes(term)
-        ? "block"
+        ? "flex"
         : "none";
+    });
+  });
+}
+
+// Initialize Copy All button
+function initCopyAll() {
+  const btn = document.getElementById("copy-all-btn");
+  if (!btn) {
+    setTimeout(initCopyAll, 100);
+    return;
+  }
+
+  btn.addEventListener("click", () => {
+    // Collect all currently visible test-ids (respects search filter)
+    const visibleIds = [...document.querySelectorAll(".testid-item")]
+      .filter(item => item.style.display !== "none")
+      .map(item => item.getAttribute("data-testid"))
+      .filter(Boolean);
+
+    if (visibleIds.length === 0) return;
+
+    const text = visibleIds.join("\n");
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = `Copied ${visibleIds.length}`;
+      btn.classList.add("copied");
+      setTimeout(() => {
+        btn.textContent = "Copy All";
+        btn.classList.remove("copied");
+      }, 1500);
+    }).catch(err => {
+      console.error("Failed to copy all:", err);
     });
   });
 }
@@ -443,12 +474,22 @@ function startRefresh() {
   refresh();
 }
 
-// Cleanup on unload
+// When sidebar closes (X button), turn off extension highlights
 window.addEventListener("beforeunload", () => {
   if (refreshInterval) {
     clearInterval(refreshInterval);
     refreshInterval = null;
   }
+
+  // Sync state to storage and notify content script
+  chrome.storage.sync.set({ testidEnabled: false });
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs && tabs[0]) {
+      chrome.tabs.sendMessage(tabs[0].id, { type: "TOGGLE_TESTIDS", enabled: false }, () => {
+        if (chrome.runtime.lastError) { /* tab may already be gone */ }
+      });
+    }
+  });
 });
 
 // Listen for messages from content script to highlight items
@@ -516,13 +557,23 @@ window.addEventListener("beforeunload", () => {
   }
 });
 
+// When sidebar opens, turn on extension highlights
+function initExtension() {
+  chrome.storage.sync.set({ testidEnabled: true });
+  sendMessageToTab({ type: "TOGGLE_TESTIDS", enabled: true });
+}
+
 // Initialize when DOM is ready
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
+    initExtension();
     initSearch();
+    initCopyAll();
     startRefresh();
   });
 } else {
+  initExtension();
   initSearch();
+  initCopyAll();
   startRefresh();
 }

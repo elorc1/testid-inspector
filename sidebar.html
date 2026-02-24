@@ -10,6 +10,34 @@
         font-family: monospace;
         padding: 10px;
       }
+      #header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+      #header h2 {
+        margin: 0;
+      }
+      #copy-all-btn {
+        background: transparent;
+        border: 1px solid magenta;
+        color: magenta;
+        font-family: monospace;
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+      }
+      #copy-all-btn:hover {
+        background: magenta;
+        color: #000;
+      }
+      #copy-all-btn.copied {
+        border-color: #0f8;
+        color: #0f8;
+      }
       #search {
         width: 95%;
         padding: 5px;
@@ -123,7 +151,10 @@
     </style>
   </head>
   <body>
-    <h2>TestID Viewer</h2>
+    <div id="header">
+      <h2>TestID Viewer</h2>
+      <button id="copy-all-btn" title="Copy all visible test-ids as a list">Copy All</button>
+    </div>
     <input id="search" placeholder="Search...">
     <div id="list"></div>
 
