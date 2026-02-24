@@ -435,6 +435,22 @@ function initSearch() {
   });
 }
 
+function getVisibleIds() {
+  return [...document.querySelectorAll(".testid-item")]
+    .filter(item => item.style.display !== "none")
+    .map(item => item.getAttribute("data-testid"))
+    .filter(Boolean);
+}
+
+function flashBtn(btn, label) {
+  btn.textContent = label;
+  btn.classList.add("copied");
+  setTimeout(() => {
+    btn.textContent = btn.dataset.originalText;
+    btn.classList.remove("copied");
+  }, 1500);
+}
+
 // Initialize Copy All button
 function initCopyAll() {
   const btn = document.getElementById("copy-all-btn");
@@ -443,25 +459,41 @@ function initCopyAll() {
     return;
   }
 
-  btn.addEventListener("click", () => {
-    // Collect all currently visible test-ids (respects search filter)
-    const visibleIds = [...document.querySelectorAll(".testid-item")]
-      .filter(item => item.style.display !== "none")
-      .map(item => item.getAttribute("data-testid"))
-      .filter(Boolean);
+  btn.dataset.originalText = "Copy All";
 
+  btn.addEventListener("click", () => {
+    const visibleIds = getVisibleIds();
     if (visibleIds.length === 0) return;
 
-    const text = visibleIds.join("\n");
-    navigator.clipboard.writeText(text).then(() => {
-      btn.textContent = `Copied ${visibleIds.length}`;
-      btn.classList.add("copied");
-      setTimeout(() => {
-        btn.textContent = "Copy All";
-        btn.classList.remove("copied");
-      }, 1500);
+    navigator.clipboard.writeText(visibleIds.join("\n")).then(() => {
+      flashBtn(btn, `Copied ${visibleIds.length}`);
     }).catch(err => {
       console.error("Failed to copy all:", err);
+    });
+  });
+}
+
+// Initialize Copy Map button — copies all visible PageObject methods back to back
+function initCopyMap() {
+  const btn = document.getElementById("copy-map-btn");
+  if (!btn) {
+    setTimeout(initCopyMap, 100);
+    return;
+  }
+
+  btn.dataset.originalText = "Copy Map";
+
+  btn.addEventListener("click", () => {
+    const visibleIds = getVisibleIds();
+    if (visibleIds.length === 0) return;
+
+    const methods = visibleIds.map(id => generatePageObjectMethod(id));
+    const text = methods.join("\n\n\n");
+
+    navigator.clipboard.writeText(text).then(() => {
+      flashBtn(btn, `Copied ${visibleIds.length}`);
+    }).catch(err => {
+      console.error("Failed to copy map:", err);
     });
   });
 }
@@ -569,11 +601,13 @@ if (document.readyState === "loading") {
     initExtension();
     initSearch();
     initCopyAll();
+    initCopyMap();
     startRefresh();
   });
 } else {
   initExtension();
   initSearch();
   initCopyAll();
+  initCopyMap();
   startRefresh();
 }

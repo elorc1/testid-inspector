@@ -19,7 +19,7 @@
       #header h2 {
         margin: 0;
       }
-      #copy-all-btn {
+      .header-btn {
         background: transparent;
         border: 1px solid magenta;
         color: magenta;
@@ -30,11 +30,11 @@
         cursor: pointer;
         transition: background 0.2s, color 0.2s;
       }
-      #copy-all-btn:hover {
+      .header-btn:hover {
         background: magenta;
         color: #000;
       }
-      #copy-all-btn.copied {
+      .header-btn.copied {
         border-color: #0f8;
         color: #0f8;
       }
@@ -153,7 +153,10 @@
   <body>
     <div id="header">
       <h2>TestID Viewer</h2>
-      <button id="copy-all-btn" title="Copy all visible test-ids as a list">Copy All</button>
+      <div style="display:flex;gap:5px;">
+        <button id="copy-all-btn" class="header-btn" title="Copy all visible test-ids as a list">Copy All</button>
+        <button id="copy-map-btn" class="header-btn" title="Copy all visible test-ids as a Python dict map">Copy Map</button>
+      </div>
     </div>
     <input id="search" placeholder="Search...">
     <div id="list"></div>
