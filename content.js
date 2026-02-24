@@ -243,15 +243,21 @@ function collectTestIds() {
     }
   });
   
-  return elements.map(el => ({
-    id: el.getAttribute("data-testid"),
-    el,
-    // Collect metadata for PageObject generation
-    tagName: el.tagName.toLowerCase(),
-    type: el.getAttribute("type") || null,
-    role: el.getAttribute("role") || null,
-    ariaLabel: el.getAttribute("aria-label") || null
-  }));
+  const seen = new Set();
+  return elements.reduce((acc, el) => {
+    const id = el.getAttribute("data-testid");
+    if (!id || seen.has(id)) return acc;
+    seen.add(id);
+    acc.push({
+      id,
+      el,
+      tagName: el.tagName.toLowerCase(),
+      type: el.getAttribute("type") || null,
+      role: el.getAttribute("role") || null,
+      ariaLabel: el.getAttribute("aria-label") || null
+    });
+    return acc;
+  }, []);
 }
 
 function clearActiveHighlight() {
