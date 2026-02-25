@@ -24,7 +24,9 @@ function toSnakeCase(testId) {
  */
 function generatePageObjectMethod(testId) {
   const snakeName = toSnakeCase(testId);
-  const xpath = `//*[@data-testid="${testId}"]`;
+  const meta = elementMetaMap.get(testId);
+  const tag = (meta && meta.tagName) ? meta.tagName : '*';
+  const xpath = `//${tag}[@data-testid="${testId}"]`;
   
   return `def get_${snakeName}(self) -> WebElement:
     """
