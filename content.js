@@ -248,13 +248,29 @@ function collectTestIds() {
     const id = el.getAttribute("data-testid");
     if (!id || seen.has(id)) return acc;
     seen.add(id);
+
+    // Find the nearest ancestor that also has a data-testid
+    let ancestor = el.parentElement;
+    let ancestorId = null;
+    let ancestorTagName = null;
+    while (ancestor && ancestor !== document.body) {
+      if (ancestor.hasAttribute('data-testid')) {
+        ancestorId = ancestor.getAttribute('data-testid');
+        ancestorTagName = ancestor.tagName.toLowerCase();
+        break;
+      }
+      ancestor = ancestor.parentElement;
+    }
+
     acc.push({
       id,
       el,
       tagName: el.tagName.toLowerCase(),
       type: el.getAttribute("type") || null,
       role: el.getAttribute("role") || null,
-      ariaLabel: el.getAttribute("aria-label") || null
+      ariaLabel: el.getAttribute("aria-label") || null,
+      ancestorId,
+      ancestorTagName
     });
     return acc;
   }, []);
@@ -389,7 +405,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         tagName: x.tagName,
         type: x.type,
         role: x.role,
-        ariaLabel: x.ariaLabel
+        ariaLabel: x.ariaLabel,
+        ancestorId: x.ancestorId,
+        ancestorTagName: x.ancestorTagName
       }))
     });
     return true; // Keep channel open for async response

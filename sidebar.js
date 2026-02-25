@@ -26,7 +26,14 @@ function generatePageObjectMethod(testId) {
   const snakeName = toSnakeCase(testId);
   const meta = elementMetaMap.get(testId);
   const tag = (meta && meta.tagName) ? meta.tagName : '*';
-  const xpath = `//${tag}[@data-testid="${testId}"]`;
+
+  let xpath;
+  if (meta && meta.ancestorId) {
+    const ancestorTag = meta.ancestorTagName || '*';
+    xpath = `//${ancestorTag}[@data-testid="${meta.ancestorId}"]//${tag}[@data-testid="${testId}"]`;
+  } else {
+    xpath = `//${tag}[@data-testid="${testId}"]`;
+  }
   
   return `def get_${snakeName}(self) -> WebElement:
     """
@@ -321,7 +328,9 @@ function updateList(testIds, testIdsWithMeta) {
         tagName: item.tagName,
         type: item.type,
         role: item.role,
-        ariaLabel: item.ariaLabel
+        ariaLabel: item.ariaLabel,
+        ancestorId: item.ancestorId,
+        ancestorTagName: item.ancestorTagName
       });
     });
   }
